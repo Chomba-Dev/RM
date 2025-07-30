@@ -3,6 +3,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const { google } = require('googleapis');
+const { addWatermarkBuffer } = require('../upload');
 // Use Multer memory storage for Vercel compatibility
 const upload = require('multer')({ storage: require('multer').memoryStorage() });
 const index = express();
@@ -89,6 +90,14 @@ index.post('/upload', restrictToEmail, upload.single('document'), async (req, re
   oauth2Client.setCredentials(req.session.tokens);
   const drive = google.drive({ version: 'v3', auth: oauth2Client });
   try {
+    let fileBuffer = file.buffer;
+    // Only watermark PDFs
+    if (file.mimetype === 'application/pdf') {
+      fileBuffer = await addWatermarkBuffer(file.buffer, `Property of ${buyerEmail}`);
+      if (!Buffer.isBuffer(fileBuffer)) {
+        throw new Error('Watermarked PDF is not a Buffer');
+      }
+    }
     // Upload file to Google Drive from memory
     const driveRes = await drive.files.create({
       requestBody: {
@@ -97,7 +106,7 @@ index.post('/upload', restrictToEmail, upload.single('document'), async (req, re
       },
       media: {
         mimeType: file.mimetype,
-        body: require('stream').Readable.from(file.buffer),
+        body: Buffer.isBuffer(fileBuffer) ? require('stream').Readable.from(fileBuffer) : fileBuffer,
       },
     });
     const fileId = driveRes.data.id;
