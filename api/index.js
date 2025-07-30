@@ -3,7 +3,8 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const { google } = require('googleapis');
-const upload = multer({ dest: 'uploads/' });
+// Use Multer memory storage for Vercel compatibility
+const upload = require('multer')({ storage: require('multer').memoryStorage() });
 const index = express();
 const PORT = process.env.PORT || 3000;
 const session = require('express-session');
@@ -88,7 +89,7 @@ index.post('/upload', restrictToEmail, upload.single('document'), async (req, re
   oauth2Client.setCredentials(req.session.tokens);
   const drive = google.drive({ version: 'v3', auth: oauth2Client });
   try {
-    // Upload file to Google Drive
+    // Upload file to Google Drive from memory
     const driveRes = await drive.files.create({
       requestBody: {
         name: file.originalname,
@@ -96,7 +97,7 @@ index.post('/upload', restrictToEmail, upload.single('document'), async (req, re
       },
       media: {
         mimeType: file.mimetype,
-        body: require('fs').createReadStream(file.path),
+        body: Buffer.from(file.buffer),
       },
     });
     const fileId = driveRes.data.id;
