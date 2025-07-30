@@ -130,8 +130,7 @@ index.post('/upload', restrictToEmail, upload.single('document'), async (req, re
   }
 });
 
-index.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Remove index.listen and export the Express app for Vercel
+module.exports = index;
 
 console.log('Happy developing ✨')
