@@ -1,0 +1,29 @@
+# Node modules
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# Directory for file uploads
+uploads/
+
+# Environment variables
+.env
+
+# Vercel build output
+.vercel/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Optional: Ignore coverage reports
+coverage/
+
