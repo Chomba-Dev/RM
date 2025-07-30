@@ -16,9 +16,9 @@ const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_REDIRECT_URI
 );
 
-index.use(express.static(path.join(__dirname, 'public')));
+index.use(express.static(path.join(process.cwd(), 'public')));
 index.set('view engine', 'ejs');
-index.set('views', path.join(__dirname, 'views'));
+index.set('views', path.join(process.cwd(), 'views'));
 
 // Middleware to parse form data
 index.use(express.urlencoded({ extended: true }));
@@ -29,7 +29,7 @@ index.use(session({
 }));
 
 index.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'index.html'));
+  res.sendFile(path.join(process.cwd(), 'views', 'index.html'));
 });
 
 index.get('/auth/google', (req, res) => {
@@ -97,7 +97,7 @@ index.post('/upload', restrictToEmail, upload.single('document'), async (req, re
       },
       media: {
         mimeType: file.mimetype,
-        body: Buffer.from(file.buffer),
+        body: require('stream').Readable.from(file.buffer),
       },
     });
     const fileId = driveRes.data.id;
@@ -130,7 +130,14 @@ index.post('/upload', restrictToEmail, upload.single('document'), async (req, re
   }
 });
 
-// Remove index.listen and export the Express app for Vercel
+// Start the server only when running locally
+if (require.main === module) {
+  index.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+// Export for Vercel
 module.exports = index;
 
 console.log('Happy developing ✨')
